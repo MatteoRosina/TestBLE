@@ -21,6 +21,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Build;
+import android.support.v4.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -205,24 +206,25 @@ public class BleActivity extends AppCompatActivity {
                 mList.clear();
                 mFoundAdapter.notifyDataSetChanged();
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (Build.VERSION.SDK_INT >= 23) {
-                        requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
-                        //ActivityCompatApi23.requestPermissions(activity, permissions, requestCode);
-                    } else if (activity instanceof OnRequestPermissionsResultCallback) {
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            public void run() {
-                                int[] grantResults = new int[permissions.length];
-                                PackageManager packageManager = activity.getPackageManager();
-                                String packageName = activity.getPackageName();
-                                int permissionCount = permissions.length;
-                                for (int i = 0; i < permissionCount; i++) {
-                                    grantResults[i] = packageManager.checkPermission(permissions[i], packageName);
-                                }
-                                ((OnRequestPermissionsResultCallback) activity).onRequestPermissionsResult(requestCode, permissions, grantResults);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                    && ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.READ_CONTACTS)
+                        != PackageManager.PERMISSION_GRANTED)
+                {
+                    requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+
+                } else if (activity instanceof OnRequestPermissionsResultCallback) {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        public void run() {
+                            int[] grantResults = new int[permissions.length];
+                            PackageManager packageManager = activity.getPackageManager();
+                            String packageName = activity.getPackageName();
+                            int permissionCount = permissions.length;
+                            for (int i = 0; i < permissionCount; i++) {
+                                grantResults[i] = packageManager.checkPermission(permissions[i], packageName);
                             }
-                        });
-                    }
+                            ((OnRequestPermissionsResultCallback) activity).onRequestPermissionsResult(requestCode, permissions, grantResults);
+                        }
+                    });
                 }
 
                 if( mBLEController.startScan() ){
