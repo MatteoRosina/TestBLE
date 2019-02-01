@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothGattService;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -35,7 +36,8 @@ import co.lujun.lmbluetoothsdk.base.BluetoothLEListener;
  * Date: 2016-1-25 17:53
  */
 @TargetApi(21)
-public class BleActivity extends AppCompatActivity {
+public class BleActivity extends AppCompatActivity
+        implements ActivityCompat.OnRequestPermissionsResultCallback{
 
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 456;
     private BluetoothLEController mBLEController;
@@ -173,8 +175,9 @@ public class BleActivity extends AppCompatActivity {
             case PERMISSION_REQUEST_COARSE_LOCATION: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permission granted, yay! Start the Bluetooth device scan.
+                    mBLEController.startScan();
                 } else {
-                    // Alert the user that this application requires the location permission to perform the scan.
+                    Toast.makeText(BleActivity.this, "Autorizzazione mancante per uso Bluetooth", Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -207,39 +210,25 @@ public class BleActivity extends AppCompatActivity {
                 mFoundAdapter.notifyDataSetChanged();
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                    && ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.READ_CONTACTS)
+                    && ActivityCompat.checkSelfPermission(
+                        BleActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED)
                 {
                     requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
-
-                } else if (activity instanceof OnRequestPermissionsResultCallback) {
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        public void run() {
-                            int[] grantResults = new int[permissions.length];
-                            PackageManager packageManager = activity.getPackageManager();
-                            String packageName = activity.getPackageName();
-                            int permissionCount = permissions.length;
-                            for (int i = 0; i < permissionCount; i++) {
-                                grantResults[i] = packageManager.checkPermission(permissions[i], packageName);
-                            }
-                            ((OnRequestPermissionsResultCallback) activity).onRequestPermissionsResult(requestCode, permissions, grantResults);
-                        }
-                    });
-                }
-
-                if( mBLEController.startScan() ){
-                    Toast.makeText(BleActivity.this, "Scanning!", Toast.LENGTH_SHORT).show();
-                }
-
-//                You can scan by service using the following code:
-//                List<UUID> uuids = new ArrayList<UUID>();
-//                uuids.add(UUID.fromString(SERVICE_ID));
+                } else {
+                    mBLEController.startScan();
+//                  You can scan by service using the following code:
+//                  List<UUID> uuids = new ArrayList<UUID>();
+//                  uuids.add(UUID.fromString(SERVICE_ID));
 //
-//                if( mBLEController.startScanByService(uuids) ){
-//                    Toast.makeText(BleActivity.this, "Scanning!", Toast.LENGTH_SHORT).show();
-//                }
+//                  if( mBLEController.startScanByService(uuids) ){
+//                      Toast.makeText(BleActivity.this, "Scanning!", Toast.LENGTH_SHORT).show();
+//                  }
+                }
+
             }
         });
+
         btnDisconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
