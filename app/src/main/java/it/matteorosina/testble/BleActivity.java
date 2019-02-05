@@ -55,7 +55,7 @@ public class BleActivity extends AppCompatActivity
     // You can change this options if you want to search by service and specify read/write
     // characteristics to be added to the controller
     private static final String SERVICE_ID = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXXX";
-    private static final String READ_CHARACTERISTIC_ID = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXXX";
+    private static final String READ_CHARACTERISTIC_ID = "00002a19-0000-1000-8000-00805f9b34fb";//"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXXX";//
     private static final String WRITE_CHARACTERISTIC_ID = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXXX";
 
     private BluetoothLEListener mBluetoothLEListener = new BluetoothLEListener() {
@@ -111,11 +111,14 @@ public class BleActivity extends AppCompatActivity
         public void onDataChanged(final BluetoothGattCharacteristic characteristic) {
 
             final String dataValue = characteristic.getStringValue(0);
+            final byte[] value = characteristic.getValue();
+            final int intValue = value[0];
+            Log.d(TAG, "got Value: " + intValue);
 
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    tvContent.append( dataValue );
+                    tvContent.append( intValue + "\n");//dataValue );
                 }
             });
         }
